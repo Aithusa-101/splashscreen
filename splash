@@ -1,0 +1,78 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'Login.dart';
+import 'navigation.dart';
+import 'package:page_transition/page_transition.dart';
+
+import 'package:flutter/material.dart';
+
+class SplashScreen extends StatefulWidget {
+  SplashScreen({Key key}) : super(key: key);
+
+  @override
+  _SplashScreenState createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  String animation;
+  bool isItTapped = false;
+
+  FirebaseAuth auth = FirebaseAuth.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    // defineFlow();
+    _isFinishedTapped().then((result) async {
+      if (result) {
+        setState(() {
+          isItTapped = result;
+        });
+      }
+
+      defineFlow();
+    });
+  }
+
+  defineFlow() async {
+    // bool loggedin = await checkUser();
+    Future.delayed(
+        Duration(
+          milliseconds: 1000,
+        ), () {
+      Navigator.pushReplacement(
+          context,
+          PageTransition(
+              child: isItTapped ? LoginPage() : Navigation(),
+              type: PageTransitionType.rightToLeftWithFade));
+    });
+  }
+
+  checkUser() async {
+    final FirebaseUser currentUser = await auth.currentUser();
+    if (currentUser != null) {
+      if (currentUser.uid != "") {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+
+  Future<bool> _isFinishedTapped() async {
+    SharedPreferences myPrefs = await SharedPreferences.getInstance();
+    bool target = myPrefs.getBool('finished') ?? false;
+    print(target);
+    return target;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(child: CircularProgressIndicator()),
+    );
+  }
+}
